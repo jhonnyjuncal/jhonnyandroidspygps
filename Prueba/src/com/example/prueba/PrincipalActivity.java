@@ -1,6 +1,5 @@
 package com.example.prueba;
 
-import com.example.util.FileUtil;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -16,15 +15,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class MainActivity extends Activity {
+public class PrincipalActivity extends Activity {
 	
 	public static Integer DISTANCIA_MINIMA_PARA_ACTUALIZACIONES = 1; // in Meters
 	public static Integer TIEMPO_MINIMO_ENTRE_ACTUALIZACIONES = 1000; // in Milliseconds
-	public static String USUARIO = null;
-	public static String CONTRASENA = null;
-	
 	private static final String FICHERO_CONFIGURACION = "config.properties";
-	
 	protected LocationManager locationManager;
 	
 	
@@ -32,7 +27,7 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
     	try{
     		super.onCreate(savedInstanceState);
-    		setContentView(R.layout.activity_main);
+    		setContentView(R.layout.activity_principal);
         
     		// carga los datos de la configuracion
     		cargaDatosConfiguracion();
@@ -49,7 +44,7 @@ public class MainActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
     	try{
-	        getMenuInflater().inflate(R.menu.activity_main, menu);
+	        getMenuInflater().inflate(R.menu.activity_principal, menu);
     	}catch(Exception ex){
     		ex.printStackTrace();
     	}
@@ -143,7 +138,7 @@ public class MainActivity extends Activity {
     		if(location != null){
     			String message = String.format("Current Location \n Longitude: %1$s \n Latitude: %2$s",
     					location.getLongitude(), location.getLatitude());
-    			Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+    			Toast.makeText(PrincipalActivity.this, message, Toast.LENGTH_LONG).show();
     		}
     		
     	}catch(Exception ex){
@@ -167,17 +162,6 @@ public class MainActivity extends Activity {
     			Integer distancia = prefs.getInt("distanciaMinimaActualizacion", DISTANCIA_MINIMA_PARA_ACTUALIZACIONES);
     			if(distancia != null && distancia > 0)
     				DISTANCIA_MINIMA_PARA_ACTUALIZACIONES = distancia;
-    			
-    			String usuario = prefs.getString("usuario", USUARIO);
-    			if(usuario != null && usuario.length() > 0){
-    				USUARIO = usuario;
-    				TextView textoUsuario = (TextView) findViewById(R.id.textView4);
-    				textoUsuario.setText(USUARIO);
-    			}
-    			
-    			String contrasena = prefs.getString("contrasena", CONTRASENA);
-    			if(contrasena != null && contrasena.length() > 0)
-    				CONTRASENA = contrasena;
     		}
     	}catch(Exception ex){
     		ex.printStackTrace();
@@ -192,9 +176,11 @@ public class MainActivity extends Activity {
     		SharedPreferences.Editor editor = prefs.edit();
     		
     		if(prefs != null){
+    			// hay que recoger los datos introducidos por el usuario en la configuracion
     			editor.putInt("tiempoMinimoActualizacion", TIEMPO_MINIMO_ENTRE_ACTUALIZACIONES);
     			editor.putInt("distanciaMinimaActualizacion", DISTANCIA_MINIMA_PARA_ACTUALIZACIONES);
     			editor.commit();
+    			finish();
     		}
     	}catch(Exception ex){
     		ex.printStackTrace();
@@ -205,16 +191,16 @@ public class MainActivity extends Activity {
     public class MyLocationListener implements LocationListener{
     	public void onLocationChanged(Location location) {
     		String message = String.format("New Location \n Longitude: %1$s \n Latitude: %2$s", location.getLongitude(), location.getLatitude());
-    		Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+    		Toast.makeText(PrincipalActivity.this, message, Toast.LENGTH_LONG).show();
     	}
     	public void onStatusChanged(String s, int i, Bundle b) {
-    		Toast.makeText(MainActivity.this, "Provider status changed", Toast.LENGTH_LONG).show();
+    		Toast.makeText(PrincipalActivity.this, "Provider status changed", Toast.LENGTH_LONG).show();
     	}
     	public void onProviderDisabled(String s) {
-    		Toast.makeText(MainActivity.this, "Provider disabled by the user. GPS turned off", Toast.LENGTH_LONG).show();
+    		Toast.makeText(PrincipalActivity.this, "Provider disabled by the user. GPS turned off", Toast.LENGTH_LONG).show();
     	}
     	public void onProviderEnabled(String s) {
-    		Toast.makeText(MainActivity.this, "Provider enabled by the user. GPS turned on", Toast.LENGTH_LONG).show();
+    		Toast.makeText(PrincipalActivity.this, "Provider enabled by the user. GPS turned on", Toast.LENGTH_LONG).show();
     	}
     }
 }
