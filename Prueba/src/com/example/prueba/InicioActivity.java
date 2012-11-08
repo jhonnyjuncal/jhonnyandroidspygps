@@ -1,10 +1,15 @@
 package com.example.prueba;
 
+import java.io.InputStream;
+import java.util.Properties;
+
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
+import android.content.res.Resources;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
@@ -51,17 +56,24 @@ public class InicioActivity extends Activity {
     			String text = "debe introducir el usuario y la contraseña";
     			Toast.makeText(InicioActivity.this, text, Toast.LENGTH_LONG).show();
     		}else{
-    			SharedPreferences prefs = getSharedPreferences(FICHERO_CONFIGURACION, Context.MODE_WORLD_WRITEABLE);
+    			Resources resources = this.getResources();
+    			AssetManager assetManager = resources.getAssets();
     			
-    			if(prefs != null){
-    				String usuario = prefs.getString("usuario", USUARIO);
-        			if(usuario != null && usuario.length() > 0)
+    			InputStream inputStream = assetManager.open(FICHERO_CONFIGURACION);
+    		    Properties properties = new Properties();
+    		    properties.load(inputStream);
+    			
+    		    if(properties != null){
+    		    	String usuario = (String)properties.get("usuario");
+    		    	if(usuario != null && usuario.length() > 0)
         				USUARIO = usuario;
-        			String contrasena = prefs.getString("contrasena", CONTRASENA);
-        			if(contrasena != null && contrasena.length() > 0)
+    		    	
+    		    	String contrasena = (String)properties.get("contrasena");
+    		    	if(contrasena != null && contrasena.length() > 0)
         				CONTRASENA = contrasena;
-        			
-        			if(textoUsuario.equals(USUARIO) && passUsuario.equals(CONTRASENA)){
+    		    	
+    		    	if(textoUsuario.getText().toString().equals(USUARIO) && passUsuario.getText().toString().equals(CONTRASENA)){
+        				// usuario y contraseña corrrectos
         				Intent intent = new Intent(InicioActivity.this, PrincipalActivity.class);
         				startActivity(intent);
         			}else{
@@ -69,7 +81,7 @@ public class InicioActivity extends Activity {
             			Toast.makeText(InicioActivity.this, text, Toast.LENGTH_LONG).show();
             			passUsuario.setText("");
         			}
-    			}
+    		    }
     		}
     	}catch(Exception ex){
     		ex.printStackTrace();
