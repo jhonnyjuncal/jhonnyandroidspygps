@@ -1,20 +1,20 @@
 package com.example.util;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import com.example.custom.ObjetoPosiciones;
-
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.widget.Toast;
 
 
 public class FileUtil implements Serializable{
@@ -47,61 +47,60 @@ public class FileUtil implements Serializable{
 	 * @return
 	 * @throws IOException
 	 */
-	public static List<ObjetoPosiciones> getListaAssetPosiciones(Resources recurso, Context ctx) throws IOException{
+	public static List<ObjetoPosiciones> getListaAssetPosiciones(Context ctx) throws IOException{
 		List<ObjetoPosiciones> listaPosiciones = null;
-//		Resources resources = recurso;
-//		AssetManager assetManager = resources.getAssets();
-		
-//		System.out.println(assetManager.getLocales().toString());
-		
-//		for(String fichero : assetManager.getLocales()){
-//			if(fichero.toString().endsWith(Constantes.FICHERO_POSICIONES)){
-//				InputStream input = assetManager.open(Constantes.FICHERO_POSICIONES);
-//				
-//				if(input != null){
-//					ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-//					byte[] bytes = new byte[4096];
-//					int len = 0;
-//					while((len = input.read(bytes)) > 0){
-//						byteStream.write(bytes, 0, len);
-//					
-//						String linea = new String(byteStream.toByteArray(), "UTF8");
-//						ObjetoPosiciones pos = new ObjetoPosiciones();
-//						pos.setFecha(null);
-//						pos.setLatitud(null);
-//						pos.setLongitud(null);
-//						listaPosiciones.add(pos);
-//					}
-//				}
-//			}
-//		}
-		
-		
 		
 		try{
-			// open the file for reading
-//			InputStream instream = ctx.openFileInput(Constantes.FICHERO_POSICIONES);
-			InputStream instream = recurso.getAssets().open(Constantes.FICHERO_POSICIONES);
-			
-			// if file the available for reading
+			InputStream instream = ctx.openFileInput(Constantes.FICHERO_POSICIONES);
 			if(instream != null){
-				// prepare the file for reading
 				InputStreamReader inputreader = new InputStreamReader(instream);
 				BufferedReader buffreader = new BufferedReader(inputreader);
 				
-				// read every line of the file into the line-variable, on line at the time
-				String line = buffreader.readLine();
-				while(line != null){
-					line = buffreader.readLine();
+				String linea = buffreader.readLine();
+				while(linea != null){
+					if(linea.equals(""))
+						linea = buffreader.readLine();
+					if(listaPosiciones == null)
+						listaPosiciones = new ArrayList<ObjetoPosiciones>();
+					if(linea != null){
+						ObjetoPosiciones op = FileUtil.conviertePosicionLeida(linea);
+						listaPosiciones.add(op);
+					}
+					if(linea != null && linea.length() > 0)
+						linea = "";
 				}
 		    }
-		     
-			// close the file again      
+			
 			instream.close();
 		}catch(FileNotFoundException e){
-			// do something if the myfilename.txt does not exits
-			e.printStackTrace();
+			FileOutputStream out = ctx.openFileOutput(Constantes.FICHERO_POSICIONES, 0);
+			out.close();
 		}
 		return listaPosiciones;
+	}
+	
+	
+	public static ObjetoPosiciones conviertePosicionLeida(String linea){
+		ObjetoPosiciones pos = null;
+		
+		try{
+			if(linea != null){
+				pos = new ObjetoPosiciones();
+				
+				Integer indice1 = linea.indexOf("?");
+				String fecha = linea.substring(0, indice1);
+				pos.setFecha(new Date(Long.parseLong(fecha)));
+				
+				Integer indice2 = linea.indexOf("?", ++indice1);
+				String latitud = linea.substring(indice1, indice2);
+				pos.setLatitud(Double.parseDouble(latitud));
+				
+				String longitud = linea.substring(++indice2, linea.length());
+				pos.setLongitud(Double.parseDouble(longitud));
+			}
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
+		return pos;
 	}
 }

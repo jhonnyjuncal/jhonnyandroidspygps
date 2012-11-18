@@ -1,25 +1,28 @@
 package com.example.prueba;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import com.example.custom.ObjetoPosiciones;
 import com.example.util.Constantes;
 import com.example.util.FileUtil;
+import com.example.util.WebServiceUtil;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
@@ -30,9 +33,11 @@ public class PrincipalActivity extends Activity {
 	
 	private static Integer DISTANCIA_MINIMA_PARA_ACTUALIZACIONES = 1; // in Meters
 	private static Integer TIEMPO_MINIMO_ENTRE_ACTUALIZACIONES = 1000; // in Milliseconds
-	private static String NOMBRE_USUARIO = "user";
 	private static final String FICHERO_CONFIGURACION = "config.properties";
 	protected LocationManager locationManager;
+	public static ProgressDialog pd;
+	
+	WifiManager wifi = null;
 	
 	
     @Override
@@ -40,17 +45,20 @@ public class PrincipalActivity extends Activity {
     	try{
     		super.onCreate(savedInstanceState);
     		setContentView(R.layout.activity_principal);
-        
+    		
+    		wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+    		
     		// carga los datos de la configuracion
     		cargaDatosConfiguracion();
-		
+    		
     		// estado actual de la wifi
     		informaEstadoActualGPS();
     		
     		// posiciones almacenadas
     		cargaPosicionesAlmacenadas();
     		
-    		
+    		// informa estado de la wifi/3G
+    		informaEstadoActualInternet();
     	}catch(Exception ex){
     		ex.printStackTrace();
     	}
@@ -84,10 +92,7 @@ public class PrincipalActivity extends Activity {
      */
     public void soloWifi(View view){
     	try{
-	    	if(R.id.button1 == view.getId()){
-	    		TextView texto1 = (TextView) findViewById(R.id.textView2);
-	    		texto1.setText("boton Solo wifi");
-	    	}
+    		informaEstadoActualGPS();
     	}catch(Exception ex){
     		ex.printStackTrace();
     	}
@@ -192,9 +197,15 @@ public class PrincipalActivity extends Activity {
     			/* NOMBRE DEL USUARIO */
     			String usuario = (String) prefs.get(Constantes.PROP_NOMBRE_USUARIO);
     			if(usuario != null && usuario.length() > 0){
-    				NOMBRE_USUARIO = usuario;
     				TextView textoUsuario = (TextView) findViewById(R.id.textView4);
     				textoUsuario.setText(usuario);
+    			}
+    			
+    			/* TIPO DE CUENTA */
+    			String tipoCuenta = (String) prefs.get(Constantes.PROP_TIPO_CUENTA);
+    			if(tipoCuenta != null && tipoCuenta.length() > 0){
+    				TextView textoCuenta = (TextView) findViewById(R.id.textView12);
+    				textoCuenta.setText(tipoCuenta);
     			}
     		}
     	}catch(Exception ex){
@@ -225,19 +236,13 @@ public class PrincipalActivity extends Activity {
     private void cargaPosicionesAlmacenadas(){
     	int contador = 0;
     	try{
-			List<ObjetoPosiciones> lista = FileUtil.getListaAssetPosiciones(this.getResources(), PrincipalActivity.this);
-			if(lista != null){
-				for(ObjetoPosiciones op : lista){
-					System.out.println(op.toString());
-					contador++;
-				}
-			}
+			List<ObjetoPosiciones> lista = FileUtil.getListaAssetPosiciones(PrincipalActivity.this);
+			if(lista != null)
+				contador = lista.size();
 			
 			TextView textoPosiciones = (TextView) findViewById(R.id.textView6);
-			textoPosiciones.setText(contador);
+			textoPosiciones.setText(String.valueOf(contador));
 		}catch(IOException e){
-			// crear el fichero
-			new File("" + Constantes.FICHERO_POSICIONES);
 			e.printStackTrace();
 		}catch(Exception ex){
 			ex.printStackTrace();
@@ -247,19 +252,27 @@ public class PrincipalActivity extends Activity {
     
     private void almacenaPosicionActualEnFichero(ObjetoPosiciones pos){
     	try{
-    		InputStream instream = getAssets().open(Constantes.FICHERO_POSICIONES);
-    		
-    		if(instream != null){
-	    		OutputStreamWriter out = new OutputStreamWriter(openFileOutput(Constantes.FICHERO_POSICIONES,0));
-	    		// write the contents on mySettings to the file
-	    		String valor = pos.getFecha().toString()+"?"+pos.getLatitud()+"?"+pos.getLongitud();
-	    		out.write(valor);
-	    		// close the file
-	    		out.close();
-    		}
+    		OutputStream output = openFileOutput(Constantes.FICHERO_POSICIONES, MODE_APPEND);
+	    	OutputStreamWriter out = new OutputStreamWriter(output);
+	    	String valor = pos.getFecha().getTime()+"?"+pos.getLatitud()+"?"+pos.getLongitud()+"\r\n";
+	    	out.write(valor);
+	    	out.close();
     	}catch(IOException e){
-    		//do something if an IOException occurs.
     		e.printStackTrace();
+    	}
+    }
+    
+    
+    private void informaEstadoActualInternet(){
+    	try{
+    		TextView textoWifi = (TextView) findViewById(R.id.textView8);
+    		
+    		if(wifi.isWifiEnabled())
+    			textoWifi.setText("Encendida");
+    		else
+    			textoWifi.setText("Apagada");
+    	}catch(Exception ex){
+    		ex.printStackTrace();
     	}
     }
     
@@ -269,20 +282,27 @@ public class PrincipalActivity extends Activity {
     
     
     public class MyLocationListener implements LocationListener{
-    	
-    	/* CUANDO LA POSICION GPS CAMBIA */
+    	/* CUANDO LA POSICION GPS CAMBIA SEGUN EL CONSTRUCTOR DE DISTANCIA Y TIEMPO */
     	public void onLocationChanged(Location location) {
     		ObjetoPosiciones pos = new ObjetoPosiciones();
     		pos.setFecha(new Date());
     		pos.setLatitud(location.getLatitude());
     		pos.setLongitud(location.getLongitude());
     		almacenaPosicionActualEnFichero(pos);
+    		cargaPosicionesAlmacenadas();
+    		
+    		System.out.println("wifi enable: " + wifi.isWifiEnabled());
+    		PrincipalActivity.pd = ProgressDialog.show(PrincipalActivity.this, "Por favor, espere", "Consultando clima...", true, false);
+    		
+    		DownloadTask2 task = new DownloadTask2();
+    		task.setContexto(PrincipalActivity.this);
+    		task.execute("");
     		
     		String message = String.format("New Location \n Longitude: %1$s \n Latitude: %2$s", location.getLongitude(), location.getLatitude());
     		Toast.makeText(PrincipalActivity.this, message, Toast.LENGTH_LONG).show();
     	}
     	
-    	/* CUANDO EL ESTADO DEL PROVIDER CAMBIA */
+    	/* CUANDO LA POSICION GPS CAMBIA */
     	public void onStatusChanged(String s, int i, Bundle b) {
     		Toast.makeText(PrincipalActivity.this, "Provider status changed", Toast.LENGTH_LONG).show();
     	}
@@ -297,4 +317,33 @@ public class PrincipalActivity extends Activity {
     		Toast.makeText(PrincipalActivity.this, "Provider enabled by the user. GPS turned on", Toast.LENGTH_LONG).show();
     	}
     }
+}
+
+
+
+class DownloadTask2 extends AsyncTask<String, Void, Object> implements Serializable{
+	
+	private static final long serialVersionUID = -2537374909989113250L;
+	String res = null;
+	private Context contexto;
+	
+	protected void onPostExecute(Object result){
+		PrincipalActivity.pd.dismiss();
+		Toast.makeText(contexto, "Clima: " + res, Toast.LENGTH_LONG).show();
+		super.onPostExecute(result);
+	}
+
+	@Override
+	protected Object doInBackground(String... params) {
+		res = WebServiceUtil.enviaDatosAlServidor();
+		return 1;
+	}
+	
+	public void setContexto(Context contexto){
+		this.contexto = contexto;
+	}
+	
+	public Context getContexto(){
+		return contexto;
+	}
 }

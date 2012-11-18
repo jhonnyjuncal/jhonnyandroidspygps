@@ -17,6 +17,5 @@ public class Constantes implements Serializable{
 	public static final String PROP_TIEMPO_MINIMO_ACTUALIZACIONES = "tiempoMinimoActualizacion";
 	public static final String PROP_DISTANCIA_MINIMA_ACTUALIZACIONES = "distanciaMinimaActualizacion";
 	public static final String PROP_NOMBRE_USUARIO = "usuario";
-	
-	
+	public static final String PROP_TIPO_CUENTA = "tipoCuenta";
 }
