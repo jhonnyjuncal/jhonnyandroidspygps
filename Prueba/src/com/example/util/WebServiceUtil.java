@@ -1,7 +1,6 @@
 package com.example.util;
 
 import java.io.Serializable;
-
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;

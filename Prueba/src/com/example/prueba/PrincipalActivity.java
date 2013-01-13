@@ -3,19 +3,18 @@ package com.example.prueba;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import com.example.custom.ObjetoPosiciones;
+import com.example.custom.DownloadTask;
+import com.example.custom.ObjetoPosicion;
 import com.example.util.Constantes;
 import com.example.util.FileUtil;
-import com.example.util.WebServiceUtil;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.app.Activity;
@@ -124,7 +123,23 @@ public class PrincipalActivity extends Activity {
 	    	if(R.id.button3 == view.getId()){
 	    		TextView texto3 = (TextView) findViewById(R.id.textView6);
 	    		texto3.setText("boton Enviar Datos");
-	    		setContentView(R.layout.activity_posiciones);
+	    		
+	    		Intent intent = new Intent(this, PosicionesActivity.class);
+    			startActivity(intent);
+	    	}
+    	}catch(Exception ex){
+    		ex.printStackTrace();
+    	}
+    }
+    
+    
+    public void muestraMapa(View view){
+    	try{
+    		if(R.id.button4 == view.getId()){
+    			String geoUriString = getResources().getString(R.string.mapa_ubicacion_inicial);  
+    			Uri geoUri = Uri.parse(geoUriString);  
+    			Intent intent = new Intent(Intent.ACTION_VIEW, geoUri);
+    			startActivity(intent);
 	    	}
     	}catch(Exception ex){
     		ex.printStackTrace();
@@ -236,7 +251,7 @@ public class PrincipalActivity extends Activity {
     private void cargaPosicionesAlmacenadas(){
     	int contador = 0;
     	try{
-			List<ObjetoPosiciones> lista = FileUtil.getListaAssetPosiciones(PrincipalActivity.this);
+			List<ObjetoPosicion> lista = FileUtil.getListaAssetPosiciones(PrincipalActivity.this);
 			if(lista != null)
 				contador = lista.size();
 			
@@ -250,7 +265,7 @@ public class PrincipalActivity extends Activity {
     }
     
     
-    private void almacenaPosicionActualEnFichero(ObjetoPosiciones pos){
+    private void almacenaPosicionActualEnFichero(ObjetoPosicion pos){
     	try{
     		OutputStream output = openFileOutput(Constantes.FICHERO_POSICIONES, MODE_APPEND);
 	    	OutputStreamWriter out = new OutputStreamWriter(output);
@@ -284,7 +299,7 @@ public class PrincipalActivity extends Activity {
     public class MyLocationListener implements LocationListener{
     	/* CUANDO LA POSICION GPS CAMBIA SEGUN EL CONSTRUCTOR DE DISTANCIA Y TIEMPO */
     	public void onLocationChanged(Location location) {
-    		ObjetoPosiciones pos = new ObjetoPosiciones();
+    		ObjetoPosicion pos = new ObjetoPosicion();
     		pos.setFecha(new Date());
     		pos.setLatitud(location.getLatitude());
     		pos.setLongitud(location.getLongitude());
@@ -294,7 +309,7 @@ public class PrincipalActivity extends Activity {
     		System.out.println("wifi enable: " + wifi.isWifiEnabled());
     		PrincipalActivity.pd = ProgressDialog.show(PrincipalActivity.this, "Por favor, espere", "Consultando clima...", true, false);
     		
-    		DownloadTask2 task = new DownloadTask2();
+    		DownloadTask task = new DownloadTask();
     		task.setContexto(PrincipalActivity.this);
     		task.execute("");
     		
@@ -321,29 +336,29 @@ public class PrincipalActivity extends Activity {
 
 
 
-class DownloadTask2 extends AsyncTask<String, Void, Object> implements Serializable{
-	
-	private static final long serialVersionUID = -2537374909989113250L;
-	String res = null;
-	private Context contexto;
-	
-	protected void onPostExecute(Object result){
-		PrincipalActivity.pd.dismiss();
-		Toast.makeText(contexto, "Clima: " + res, Toast.LENGTH_LONG).show();
-		super.onPostExecute(result);
-	}
-
-	@Override
-	protected Object doInBackground(String... params) {
-		res = WebServiceUtil.enviaDatosAlServidor();
-		return 1;
-	}
-	
-	public void setContexto(Context contexto){
-		this.contexto = contexto;
-	}
-	
-	public Context getContexto(){
-		return contexto;
-	}
-}
+//class DownloadTask2 extends AsyncTask<String, Void, Object> implements Serializable{
+//	
+//	private static final long serialVersionUID = -2537374909989113250L;
+//	String res = null;
+//	private Context contexto;
+//	
+//	protected void onPostExecute(Object result){
+//		PrincipalActivity.pd.dismiss();
+//		Toast.makeText(contexto, "Clima: " + res, Toast.LENGTH_LONG).show();
+//		super.onPostExecute(result);
+//	}
+//
+//	@Override
+//	protected Object doInBackground(String... params) {
+//		res = WebServiceUtil.enviaDatosAlServidor();
+//		return 1;
+//	}
+//	
+//	public void setContexto(Context contexto){
+//		this.contexto = contexto;
+//	}
+//	
+//	public Context getContexto(){
+//		return contexto;
+//	}
+//}

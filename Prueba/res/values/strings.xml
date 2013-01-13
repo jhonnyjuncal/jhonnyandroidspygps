@@ -28,5 +28,8 @@
     <string name="label_registro_nuevo">Usuario nuevo</string>
     <string name="label_recordar_pass">Recordar contraseña</string>
     <string name="msg_usuario_contrasena_obligatorios">Usuario y Contraseña son abligatorios</string>
+    <string name="label_mostrar_mapa">Mostrar posiciones en mapa</string>
+    <string name="title_activity_mapa">MapaActivity</string>
+    <string name="mapa_ubicacion_inicial">"geo:0,0?q=Spain"</string>
 
 </resources>

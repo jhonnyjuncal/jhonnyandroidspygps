@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import com.example.custom.ObjetoPosiciones;
+import com.example.custom.ObjetoPosicion;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -47,8 +47,8 @@ public class FileUtil implements Serializable{
 	 * @return
 	 * @throws IOException
 	 */
-	public static List<ObjetoPosiciones> getListaAssetPosiciones(Context ctx) throws IOException{
-		List<ObjetoPosiciones> listaPosiciones = null;
+	public static List<ObjetoPosicion> getListaAssetPosiciones(Context ctx) throws IOException{
+		List<ObjetoPosicion> listaPosiciones = null;
 		
 		try{
 			InputStream instream = ctx.openFileInput(Constantes.FICHERO_POSICIONES);
@@ -61,9 +61,9 @@ public class FileUtil implements Serializable{
 					if(linea.equals(""))
 						linea = buffreader.readLine();
 					if(listaPosiciones == null)
-						listaPosiciones = new ArrayList<ObjetoPosiciones>();
+						listaPosiciones = new ArrayList<ObjetoPosicion>();
 					if(linea != null){
-						ObjetoPosiciones op = FileUtil.conviertePosicionLeida(linea);
+						ObjetoPosicion op = FileUtil.conviertePosicionLeida(linea);
 						listaPosiciones.add(op);
 					}
 					if(linea != null && linea.length() > 0)
@@ -80,12 +80,12 @@ public class FileUtil implements Serializable{
 	}
 	
 	
-	public static ObjetoPosiciones conviertePosicionLeida(String linea){
-		ObjetoPosiciones pos = null;
+	public static ObjetoPosicion conviertePosicionLeida(String linea){
+		ObjetoPosicion pos = null;
 		
 		try{
 			if(linea != null){
-				pos = new ObjetoPosiciones();
+				pos = new ObjetoPosicion();
 				
 				Integer indice1 = linea.indexOf("?");
 				String fecha = linea.substring(0, indice1);

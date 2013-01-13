@@ -2,9 +2,12 @@ package com.example.custom;
 
 import java.io.Serializable;
 import java.util.Date;
+import android.graphics.drawable.Drawable;
+import com.google.android.maps.ItemizedOverlay;
+import com.google.android.maps.OverlayItem;
 
 
-public class ObjetoPosiciones implements Serializable{
+public class ObjetoPosicion implements Serializable{
 	
 	private static final long serialVersionUID = 999430421804375555L;
 	
@@ -14,10 +17,12 @@ public class ObjetoPosiciones implements Serializable{
 	private double longitud;
 	
 	
-	public ObjetoPosiciones(){
+	public ObjetoPosicion() {
+		super();
 	}
 	
-	public ObjetoPosiciones(Date fecha, double latitud, double longitud){
+	public ObjetoPosicion(Date fecha, double latitud, double longitud){
+		super();
 		this.fecha = fecha;
 		this.latitud = latitud;
 		this.longitud = longitud;
