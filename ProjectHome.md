@@ -1,0 +1,1 @@
+aplicacion de android para el control de ubicacion por GPS desarrollado por jhonny juncal gonzalez
